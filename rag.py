@@ -1,13 +1,12 @@
 # rag.py
 import os
 from dotenv import load_dotenv
-from google import genai
+import google.generativeai as genai
 
 load_dotenv()
 
-client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
-)
+# Configure the API
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
 DATA_CONTEXT = ""
 
@@ -43,9 +42,8 @@ Question:
 {question}
 """
 
-    response = client.models.generate_content(
-        model="gemini-1.5-flash",
-        contents=prompt
-    )
+    # Use the correct API method
+    model = genai.GenerativeModel('gemini-1.5-flash')
+    response = model.generate_content(prompt)
 
     return response.text

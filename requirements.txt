@@ -2,7 +2,7 @@ flask
 langchain
 faiss-cpu
 openai
-google-genai
+google-generativeai
 python-dotenv
 flask-cors
 gunicorn
