@@ -4,39 +4,42 @@ import google.generativeai as genai
 
 load_dotenv()
 
-API_KEY = os.getenv("GEMINI_API_KEY")
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-if not API_KEY:
-    raise RuntimeError("GEMINI_API_KEY is missing")
+model = None
+cached_context = None
 
-genai.configure(api_key=API_KEY)
-model = genai.GenerativeModel("gemini-1.5-flash")
 
 def load_data():
     texts = []
-    try:
-        for file in os.listdir("data"):
-            with open(f"data/{file}", "r", encoding="utf-8") as f:
-                texts.append(f.read())
-    except Exception as e:
-        print("Data load error:", e)
-    return texts
+    base_path = os.path.join(os.path.dirname(__file__), "data")
 
-def get_answer(question: str) -> str:
-    try:
-        context = "\n".join(load_data())
-        prompt = f"""
+    for file in os.listdir(base_path):
+        with open(os.path.join(base_path, file), "r", encoding="utf-8") as f:
+            texts.append(f.read())
+
+    return "\n".join(texts)
+
+
+def get_answer(question):
+    global model, cached_context
+
+    if model is None:
+        model = genai.GenerativeModel("gemini-1.5-flash")
+
+    if cached_context is None:
+        cached_context = load_data()
+
+    prompt = f"""
 You are a personal AI assistant for Maheen Hamid.
-Answer clearly and shortly using the information below.
+Answer briefly and clearly using the information below only.
 
 Information:
-{context}
+{cached_context}
 
 Question:
 {question}
 """
-        response = model.generate_content(prompt)
-        return response.text.strip()
-    except Exception as e:
-        print("Gemini error:", e)
-        return "AI is temporarily unavailable. Please try again."
+
+    response = model.generate_content(prompt)
+    return response.text
