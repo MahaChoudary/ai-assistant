@@ -2,44 +2,38 @@ import os
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-load_dotenv()
+print("GEMINI SDK ACTIVE")
 
+load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-model = None
-cached_context = None
+model = genai.GenerativeModel("gemini-1.5-flash")
 
+# LOAD DATA ONCE (IMPORTANT)
+DATA_CONTEXT = ""
 
-def load_data():
+def load_data_once():
+    global DATA_CONTEXT
     texts = []
-    base_path = os.path.join(os.path.dirname(__file__), "data")
-
-    for file in os.listdir(base_path):
-        with open(os.path.join(base_path, file), "r", encoding="utf-8") as f:
+    for file in os.listdir("data"):
+        with open(os.path.join("data", file), "r", encoding="utf-8") as f:
             texts.append(f.read())
+    DATA_CONTEXT = "\n".join(texts)
 
-    return "\n".join(texts)
+load_data_once()
 
 
 def get_answer(question):
-    global model, cached_context
-
-    if model is None:
-        model = genai.GenerativeModel("gemini-1.5-flash")
-
-    if cached_context is None:
-        cached_context = load_data()
-
     prompt = f"""
 You are a personal AI assistant for Maheen Hamid.
-Answer briefly and clearly using the information below only.
+Answer ONLY from the information below.
+Be clear and concise.
 
 Information:
-{cached_context}
+{DATA_CONTEXT}
 
 Question:
 {question}
 """
-
     response = model.generate_content(prompt)
     return response.text

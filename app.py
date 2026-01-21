@@ -2,13 +2,16 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from rag import get_answer
 import os
+import traceback
 
 app = Flask(__name__)
 CORS(app)
 
+# Health check (VERY IMPORTANT for Railway)
 @app.route("/", methods=["GET"])
 def health():
-    return jsonify({"status": "ok", "message": "AI backend is running"})
+    return jsonify({"status": "ok"}), 200
+
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -17,16 +20,21 @@ def chat():
         question = data.get("question", "").strip()
 
         if not question:
-            return jsonify({"answer": "Please ask a valid question."})
+            return jsonify({"answer": "Please ask a valid question."}), 400
 
         answer = get_answer(question)
-        return jsonify({"answer": answer})
+        return jsonify({"answer": answer}), 200
 
     except Exception as e:
-        print("CHAT ERROR:", e)
+        # LOG ERROR SO RAILWAY CAN SEE IT
+        print("ERROR IN /chat")
+        traceback.print_exc()
+
         return jsonify({
-            "answer": "AI is busy or temporarily unavailable. Please try again."
-        })
+            "error": "Internal server error",
+            "details": str(e)
+        }), 500
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
