@@ -1,22 +1,24 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from rag import get_answer
-import os
 
 app = Flask(__name__)
 CORS(app)
 
 @app.route("/", methods=["GET"])
 def health():
-    return "AI backend is running"
+    return "AI backend is running successfully"
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.get_json()
-    question = data.get("question", "")
-    answer = get_answer(question)
-    return jsonify({"answer": answer})
+    data = request.get_json(force=True)
+    question = data.get("question", "").strip()
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    if not question:
+        return jsonify({"answer": "Please ask a valid question."}), 400
+
+    try:
+        answer = get_answer(question)
+        return jsonify({"answer": answer})
+    except Exception:
+        return jsonify({"answer": "Internal AI error. Please try again later."}), 500
