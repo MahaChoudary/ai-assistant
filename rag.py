@@ -6,7 +6,10 @@ from google import genai
 load_dotenv()
 
 # Create client
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+api_key = os.getenv("GEMINI_API_KEY")
+if not api_key:
+    raise RuntimeError("GEMINI_API_KEY is not set")
+client = genai.Client(api_key=api_key)
 
 DATA_CONTEXT = ""
 
@@ -43,7 +46,7 @@ Question:
 """
 
     response = client.models.generate_content(
-        model='gemini-2.0-flash-exp',
+        model='gemini-2.5-flash',
         contents=prompt
     )
 
