@@ -3,48 +3,33 @@ import google.generativeai as genai
 
 print("GEMINI STABLE SDK ACTIVE")
 
+# Railway reads env vars automatically
+genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+model = genai.GenerativeModel("gemini-1.5-flash")
 
-# ✅ safe API key load
-api_key = os.getenv("GEMINI_API_KEY")
-if not api_key:
-    raise ValueError("GEMINI_API_KEY not found in environment variables")
-
-genai.configure(api_key=api_key)
-
-model = genai.GenerativeModel("models/gemini-1.5-flash")
-
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_DIR = os.path.join(BASE_DIR, "data")
 
 def load_data():
     texts = []
-
-    # ✅ IMPORTANT SAFETY CHECK
-    if not os.path.exists("data"):
-        print("⚠️ data folder not found, running without RAG data")
-        return texts
-
-    for file in os.listdir("data"):
-        file_path = os.path.join("data", file)
-        if os.path.isfile(file_path):
-            with open(file_path, "r", encoding="utf-8") as f:
-                texts.append(f.read())
-
+    for file in os.listdir(DATA_DIR):
+        file_path = os.path.join(DATA_DIR, file)
+        with open(file_path, "r", encoding="utf-8") as f:
+            texts.append(f.read())
     return texts
 
-
 def get_answer(question):
-    context_list = load_data()
-    context = "\n".join(context_list) if context_list else "No additional context available."
-
+    context = "\n".join(load_data())
     prompt = f"""
 You are a personal AI assistant for Maheen Hamid.
-Answer clearly and naturally.
+Answer the question ONLY using the information below.
+Be clear, short, and natural.
 
-Context:
+Information:
 {context}
 
 Question:
 {question}
 """
-
     response = model.generate_content(prompt)
     return response.text
