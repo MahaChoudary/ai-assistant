@@ -1,10 +1,8 @@
 import os
-from dotenv import load_dotenv
 import google.generativeai as genai
 
 print("GEMINI STABLE SDK ACTIVE")
 
-load_dotenv()
 
 # ✅ safe API key load
 api_key = os.getenv("GEMINI_API_KEY")
