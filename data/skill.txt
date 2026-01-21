@@ -1,0 +1,6 @@
+Python
+Machine Learning
+Artificial Intelligence
+NLP
+React
+Flask
